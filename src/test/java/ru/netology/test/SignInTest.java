@@ -14,19 +14,28 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class SignInTest {
+    @BeforeAll
+    static void cleanBase() {
+        DataHelper.clearTables();
+    }
+
     @Order(1)
     @Test
-    void shouldSignIn() throws SQLException {
+    void shouldSignIn() {
         val loginPage = open("http://localhost:9999", LoginPage.class);
         val authInfo = DataHelper.getActiveAuthInfo();
-        val dashboardPage = loginPage.validLogin(authInfo).validVerify(DataHelper.getVerificationCodeFor(authInfo));
+        loginPage.login(authInfo);
+        loginPage.returnVerificationPage().validVerify(DataHelper.getVerificationCodeFor(authInfo));
     }
 
     @Order(2)
     @Test
-    void shouldBlockedWithErrorPass() throws SQLException {
+    void shouldBlockedWithErrorPass() {
         val loginPage = open("http://localhost:9999", LoginPage.class);
-        val authInfo = DataHelper.getActiveAuthInfo();
-        loginPage.multipleInvalidLogin(authInfo);
+        val authInfo = DataHelper.getInActiveAuthInfo();
+        loginPage.login(authInfo);
+        loginPage.login(authInfo);
+        loginPage.login(authInfo);
+        loginPage.blocked();
     }
 }
